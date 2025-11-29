@@ -19,13 +19,13 @@ class ReplayBuffer:
         transitions = random.sample(self.buffer, batch_size)
         states, actions, rewards, next_states, dones = zip(*transitions) 
 
-        return (torch.tensor(states, dtype=torch.float32).to(device),
+        return (torch.tensor(np.array(states), dtype=torch.float32).to(device),
                 torch.tensor(actions, dtype=torch.int64).unsqueeze(1).to(device),
                 torch.tensor(rewards, dtype=torch.float32).unsqueeze(1).to(device),
-                torch.tensor(next_states, dtype=torch.float32).to(device),
+                torch.tensor(np.array(next_states), dtype=torch.float32).to(device),
                 torch.tensor(dones, dtype=torch.bool).unsqueeze(1).to(device))
 
-    def __len__(self):
+    def __len__(self):  
         return len(self.buffer)
 
 
@@ -65,7 +65,7 @@ class DQNAgent:
         # Exploitation: Greedy Action
         else:
             # convert state to tensor on device 
-            state_t = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(self.device)
+            state_t = torch.tensor(np.array(state), dtype=torch.float32).unsqueeze(0).to(self.device)
             # get Q-values from network:
             q_values = self.q_net(state_t)
 
