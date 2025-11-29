@@ -1,0 +1,4 @@
+torch
+gymnasium[classic_control,box2d]
+numpy
+matplotlib
