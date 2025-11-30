@@ -138,4 +138,4 @@ cython_debug/
 .DS_Store
 
 # Results from training
-projects/cartpole/results
+projects/*/results

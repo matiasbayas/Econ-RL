@@ -4,11 +4,20 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from env import IncomeFlucuationEnv
 from agent import PolicyNet, collect_trajectory, compute_returns
+import argparse
+from pathlib import Path
+from datetime import datetime
 
 def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discounted_gradient=True):
     
     torch.manual_seed(seed)
     np.random.seed(seed)
+
+    # Create results directory
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    run_dir = Path("projects/income_fluctuation/results") / f"run_{timestamp}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Saving results to {run_dir}")
 
     env = IncomeFlucuationEnv(beta=0.96, sigma=2.0, y=[0.5, 1.5], P=[[0.1, 0.9], [0.9, 0.1]], amin=0.0)
     
@@ -45,12 +54,13 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
         # 4. Logging
         discounted_total_reward = returns[0].item()
         episode_rewards.append(discounted_total_reward)
-        pbar.set_postfix(discounted_total_reward=discounted_total_reward)
+        
+        # Update progress bar with rolling average
+        avg_reward = np.mean(episode_rewards[-50:]) if len(episode_rewards) >= 50 else np.mean(episode_rewards)
+        pbar.set_description(f"Avg Reward: {avg_reward:.2f}")
 
-    return policy, episode_rewards
+    return policy, episode_rewards, run_dir
 
-
-import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Income Fluctuation Agent")
@@ -61,17 +71,31 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    policy, rewards = train_reinforce(
+    policy, rewards, run_dir = train_reinforce(
         n_episodes=args.episodes, 
         lr=args.lr, 
         seed=args.seed, 
         use_discounted_gradient=args.discounted_gradient
     )
     
-    # Plot learning curve
-    plt.plot(rewards)
+    # Save model and rewards
+    torch.save(policy.state_dict(), run_dir / "model.pth")
+    np.save(run_dir / "rewards.npy", np.array(rewards))
+    
+    # Plot learning curve with smoothing
+    plt.figure(figsize=(10, 5))
+    plt.plot(rewards, label='Raw Reward', alpha=0.3)
+    
+    # Calculate moving average
+    window_size = 50
+    if len(rewards) >= window_size:
+        moving_avg = np.convolve(rewards, np.ones(window_size)/window_size, mode='valid')
+        plt.plot(range(window_size-1, len(rewards)), moving_avg, label=f'{window_size}-Episode Moving Avg', color='orange')
+    
     plt.xlabel("Episode")
     plt.ylabel("Total Discounted Reward")
     plt.title(f"Income Fluctuation (Discounted Grad: {args.discounted_gradient})")
-    plt.savefig("projects/income_fluctuation/learning_curve.png")
-    print("Training complete! Saved plot.")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.savefig(run_dir / "learning_curve.png")
+    print(f"Training complete! Results saved to {run_dir}")
