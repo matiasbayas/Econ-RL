@@ -42,8 +42,8 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
         for _ in range(batch_size):
             # 1. Collect trajectory
             log_probs, rewards = collect_trajectory(env, policy, max_steps=100, device=device)
-            returns = compute_returns(rewards, gamma=env.beta)  
-
+            returns = compute_returns(rewards, gamma=env.beta)
+            
             # 2. Compute loss
             log_probs_t = torch.stack(log_probs) 
             if use_discounted_gradient:
@@ -63,7 +63,6 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
         optimizer.step()
 
         # 4. Logging
-        # We extend the list with ALL rewards from this batch
         episode_rewards.extend(batch_rewards)
         
         # Update progress bar with rolling average of the last 50 episodes
