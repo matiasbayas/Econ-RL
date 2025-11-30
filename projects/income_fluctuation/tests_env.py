@@ -1,10 +1,10 @@
 import gymnasium as gym
-from env import IncomeFlucuationEnv
+from env import IncomeFluctuationEnv
 import numpy as np
 
 def test_env():
     print("Initializing environment...")
-    env = IncomeFlucuationEnv()
+    env = IncomeFluctuationEnv()
     
     print("Resetting environment...")
     obs, info = env.reset(seed=42)

@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from env import IncomeFlucuationEnv
+from env import IncomeFluctuationEnv
 from agent import PolicyNet
 import argparse
 from pathlib import Path
@@ -11,7 +11,7 @@ def validate(run_dir):
     model_path = run_path / "model.pth"
     
     # Load environment and model
-    env = IncomeFlucuationEnv(beta=0.96, sigma=2.0, amin=0.0)
+    env = IncomeFluctuationEnv(beta=0.96, sigma=2.0, amin=0.0)
     obs_dim = env.observation_space.shape[0]
     
     policy = PolicyNet(obs_dim, hidden_dim=64)

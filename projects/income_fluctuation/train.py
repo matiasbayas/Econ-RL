@@ -2,13 +2,13 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from env import IncomeFlucuationEnv
+from env import IncomeFluctuationEnv
 from agent import PolicyNet, collect_trajectory, compute_returns
 import argparse
 from pathlib import Path
 from datetime import datetime
 
-def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discounted_gradient=True):
+def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discounted_gradient=True, batch_size=10):
     
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -19,7 +19,7 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
     run_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving results to {run_dir}")
 
-    env = IncomeFlucuationEnv(beta=0.96, sigma=2.0, y=[0.5, 1.5], P=[[0.1, 0.9], [0.9, 0.1]], amin=0.0)
+    env = IncomeFluctuationEnv(beta=0.96, sigma=2.0, y=[0.5, 1.5], P=[[0.1, 0.9], [0.9, 0.1]], amin=0.0)
     
     obs_dim = env.observation_space.shape[0]
 
@@ -28,34 +28,45 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
     optimizer = torch.optim.Adam(policy.parameters(), lr=lr)
 
     # Training loop
-    pbar = tqdm(range(n_episodes))
     episode_rewards = []
 
-    for i in pbar:
-        # 1. Collect trajectory
-        log_probs, rewards = collect_trajectory(env, policy, max_steps=100, device=device)
-        returns = compute_returns(rewards, gamma=env.beta)  
+    # Calculate how many batches we need
+    n_batches = n_episodes // batch_size
+    pbar = tqdm(range(n_batches))
 
-        # 2. Compute loss
-        log_probs_t = torch.stack(log_probs) 
-        if use_discounted_gradient:
-            # Create discount factors efficiently [1, gamma, gamma^2, ..., gamma^(T-1)]
-            T = len(rewards)
-            discounts = torch.logspace(0, T-1, steps=T, base=env.beta, device=device)
-            loss = - (discounts * log_probs_t * returns).sum()
-        else:
-            loss = - (log_probs_t * returns).sum()
-        
-        # 3. Update
+    for b in pbar:
+
+        batch_loss = 0
+        batch_rewards = []
+
+        for _ in range(batch_size):
+            # 1. Collect trajectory
+            log_probs, rewards = collect_trajectory(env, policy, max_steps=100, device=device)
+            returns = compute_returns(rewards, gamma=env.beta)  
+
+            # 2. Compute loss
+            log_probs_t = torch.stack(log_probs) 
+            if use_discounted_gradient:
+                # Create discount factors efficiently [1, gamma, gamma^2, ..., gamma^(T-1)]
+                T = len(rewards)
+                discounts = torch.logspace(0, T-1, steps=T, base=env.beta, device=device)
+                loss = - (discounts * log_probs_t * returns).sum()
+            else:
+                loss = - (log_probs_t * returns).sum()
+
+            batch_loss += loss / batch_size
+            batch_rewards.append(returns[0].item())
+            
+        # 3. Update (once per batch)
         optimizer.zero_grad()
-        loss.backward()
+        batch_loss.backward()
         optimizer.step()
 
         # 4. Logging
-        discounted_total_reward = returns[0].item()
-        episode_rewards.append(discounted_total_reward)
+        # We extend the list with ALL rewards from this batch
+        episode_rewards.extend(batch_rewards)
         
-        # Update progress bar with rolling average
+        # Update progress bar with rolling average of the last 50 episodes
         avg_reward = np.mean(episode_rewards[-50:]) if len(episode_rewards) >= 50 else np.mean(episode_rewards)
         pbar.set_description(f"Avg Reward: {avg_reward:.2f}")
 
@@ -68,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--discounted_gradient", action="store_true", help="Use discounted gradient")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--batch_size", type=int, default=10, help="Batch size")
     
     args = parser.parse_args()
     
@@ -75,7 +87,8 @@ if __name__ == "__main__":
         n_episodes=args.episodes, 
         lr=args.lr, 
         seed=args.seed, 
-        use_discounted_gradient=args.discounted_gradient
+        use_discounted_gradient=args.discounted_gradient,
+        batch_size=args.batch_size
     )
     
     # Save model and rewards

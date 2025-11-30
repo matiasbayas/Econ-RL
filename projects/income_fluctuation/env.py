@@ -3,7 +3,7 @@ import numpy as np
 from gymnasium import spaces
 
 
-class IncomeFlucuationEnv(gym.Env):
+class IncomeFluctuationEnv(gym.Env):
     def __init__(self, r=0.02, beta=0.06, sigma=2.0, y=[0.5, 1.5], P=[[0.1, 0.9], [0.9, 0.1]], amin=0.0):
 
         # Parameters
