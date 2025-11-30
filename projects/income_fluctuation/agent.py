@@ -21,6 +21,7 @@ class PolicyNet(nn.Module):
 
         mean = self.mean_head(x)
         log_std = self.log_std_head(x)
+        log_std = torch.clamp(log_std, -20, 2)
         std = torch.exp(log_std)
 
         return mean, std
