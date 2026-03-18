@@ -16,7 +16,7 @@ def validate(run_dir):
     
     policy = PolicyNet(obs_dim, hidden_dim=64)
     try:
-        policy.load_state_dict(torch.load(model_path))
+        policy.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
         print(f"Loaded trained model from {model_path}")
     except FileNotFoundError:
         print(f"Model not found at {model_path}")
@@ -89,7 +89,7 @@ def validate(run_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Validate Income Fluctuation Agent")
-    parser.add_argument("run_dir", type=str, help="Path to the run directory (e.g., projects/income_fluctuation/results/run_...)")
+    parser.add_argument("run_dir", type=str, help="Path to the run directory (e.g., results/run_...)")
     args = parser.parse_args()
     
     validate(args.run_dir)

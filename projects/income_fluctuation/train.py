@@ -1,12 +1,18 @@
-import torch 
-import numpy as np
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-from env import IncomeFluctuationEnv
-from agent import PolicyNet, collect_trajectory, compute_returns
 import argparse
-from pathlib import Path
 from datetime import datetime
+import os
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from tqdm import tqdm
+
+from agent import PolicyNet, collect_trajectory, compute_returns
+from env import IncomeFluctuationEnv
+
+SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = SCRIPT_DIR / "results"
 
 def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discounted_gradient=True, batch_size=10):
     
@@ -15,7 +21,7 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
 
     # Create results directory
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_dir = Path("projects/income_fluctuation/results") / f"run_{timestamp}"
+    run_dir = RESULTS_DIR / f"run_{timestamp}"
     run_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving results to {run_dir}")
 
@@ -31,15 +37,16 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
     episode_rewards = []
 
     # Calculate how many batches we need
-    n_batches = n_episodes // batch_size
+    n_batches = (n_episodes + batch_size - 1) // batch_size
     pbar = tqdm(range(n_batches))
 
-    for b in pbar:
+    for _ in pbar:
+        current_batch_size = min(batch_size, n_episodes - len(episode_rewards))
 
         batch_loss = 0
         batch_rewards = []
 
-        for _ in range(batch_size):
+        for _ in range(current_batch_size):
             # 1. Collect trajectory
             log_probs, rewards = collect_trajectory(env, policy, max_steps=100, device=device)
             returns = compute_returns(rewards, gamma=env.beta)
@@ -54,7 +61,7 @@ def train_reinforce(n_episodes=1000, lr=1E-3, seed=42, device='cpu', use_discoun
             else:
                 loss = - (log_probs_t * returns).sum()
 
-            batch_loss += loss / batch_size
+            batch_loss += loss / current_batch_size
             batch_rewards.append(returns[0].item())
             
         # 3. Update (once per batch)

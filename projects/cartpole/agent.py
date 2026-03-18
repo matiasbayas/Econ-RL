@@ -1,5 +1,4 @@
 import gymnasium as gym
-import numpy as np
 import torch
 import torch.nn as nn
 import collections
@@ -80,17 +79,8 @@ if __name__ == "__main__":
     n_actions = env.action_space.n
     policy = PolicyNet(state_dim, hidden_dim=64, n_actions=n_actions)
     log_probs, rewards = collect_trajectory(env, policy, gamma=0.99, render=False)
+    returns = compute_returns(rewards)
     print("Episode length:", len(rewards))
     print("Episode reward:", sum(rewards))
-
-
-if __name__ == "__main__":
-    env = gym.make("CartPole-v1")
-    state_dim = env.observation_space.shape[0]
-    n_actions = env.action_space.n
-    policy = PolicyNet(state_dim, hidden_dim=64, n_actions=n_actions)
-    log_probs, rewards = collect_trajectory(env, policy, gamma=0.99, render=True)
-    
-    returns = compute_returns(rewards)
     print("First few rewards:", rewards[:5])
     print("First few returns:", returns[:5])

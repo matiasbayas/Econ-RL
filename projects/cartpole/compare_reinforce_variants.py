@@ -4,9 +4,12 @@ import os
 import glob
 from train import train_reinforce
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+RESULTS_DIR = os.path.join(SCRIPT_DIR, "results")
+
 def find_latest_run(prefix):
     # Find the latest run directory for the given algorithm
-    search_path = os.path.join("projects", "cartpole", "results", f"{prefix}*")
+    search_path = os.path.join(RESULTS_DIR, f"{prefix}*")
     runs = [d for d in glob.glob(search_path) if os.path.isdir(d)]
     if not runs:
         print(f"No runs found for prefix: {prefix}")
@@ -37,6 +40,8 @@ def plot_comparison():
 
     # Moving average
     def moving_average(data, window=50):
+        if len(data) < window:
+            return None
         return np.convolve(data, np.ones(window), 'valid') / window
 
     plt.figure(figsize=(10, 6))
@@ -46,8 +51,12 @@ def plot_comparison():
     plt.plot(disc_rewards, alpha=0.3, color='red', label='Discounted Gradient (Raw)')
     
     # Plot smoothed data (bold)
-    plt.plot(moving_average(std_rewards), color='blue', linewidth=2, label='Standard (Smoothed)')
-    plt.plot(moving_average(disc_rewards), color='red', linewidth=2, label='Discounted Gradient (Smoothed)')
+    std_smooth = moving_average(std_rewards)
+    disc_smooth = moving_average(disc_rewards)
+    if std_smooth is not None:
+        plt.plot(std_smooth, color='blue', linewidth=2, label='Standard (Smoothed)')
+    if disc_smooth is not None:
+        plt.plot(disc_smooth, color='red', linewidth=2, label='Discounted Gradient (Smoothed)')
 
     plt.title("REINFORCE: Standard vs Discounted Gradient")
     plt.xlabel("Episode")
@@ -55,7 +64,7 @@ def plot_comparison():
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    save_path = "projects/cartpole/results/reinforce_comparison.png"
+    save_path = os.path.join(RESULTS_DIR, "reinforce_comparison.png")
     plt.savefig(save_path)
     print(f"Comparison plot saved to {save_path}")
 

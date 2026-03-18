@@ -2,17 +2,21 @@ import os
 # Set fallback for MPS before importing torch
 os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
 
-import gymnasium as gym
-import torch
-import numpy as np
 import argparse
 import random
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List
+
+import gymnasium as gym
+import numpy as np
+import torch
 from tqdm import tqdm
+
 from agent import PolicyNet, collect_trajectory, compute_returns
+
+SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = SCRIPT_DIR / "results"
 
 def set_seed(seed: int):
     """Sets the seed for reproducibility."""
@@ -53,7 +57,7 @@ def train_reinforce(
     # Create results directory using pathlib
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     variant = "discounted" if use_discounted_gradient else "standard"
-    run_dir = Path("projects/cartpole/results") / f"run_{variant}_{timestamp}"
+    run_dir = RESULTS_DIR / f"run_{variant}_{timestamp}"
     run_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving results to {run_dir}")
 

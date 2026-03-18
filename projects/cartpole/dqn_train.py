@@ -1,15 +1,23 @@
-import gymnasium as gym
-import torch 
-import numpy as np
 import os
+
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
 import argparse
 from datetime import datetime
+
+import gymnasium as gym
+import numpy as np
+import torch
+
 from dqn_agent import DQNAgent
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+RESULTS_DIR = os.path.join(SCRIPT_DIR, "results")
 
 def train_dqn(n_episodes=500, batch_size=64, device_name="auto", lr=1E-3):
     # Create results directory
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_dir = os.path.join("projects", "cartpole", "results", f"dqn_run_{timestamp}")
+    run_dir = os.path.join(RESULTS_DIR, f"dqn_run_{timestamp}")
     os.makedirs(run_dir, exist_ok=True)
     print(f"Saving results to {run_dir}")
 
@@ -20,10 +28,6 @@ def train_dqn(n_episodes=500, batch_size=64, device_name="auto", lr=1E-3):
         device = torch.device(device_name)
     print(f"Using device: {device}")
     
-    # Set fallback for MPS if needed
-    if device.type == 'mps':
-        os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
-
     # Hyperparameters
     epsilon = 1.0
     epsilon_decay = 0.995

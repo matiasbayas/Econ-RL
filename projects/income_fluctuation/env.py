@@ -4,7 +4,7 @@ from gymnasium import spaces
 
 
 class IncomeFluctuationEnv(gym.Env):
-    def __init__(self, r=0.02, beta=0.06, sigma=2.0, y=[0.5, 1.5], P=[[0.1, 0.9], [0.9, 0.1]], amin=0.0):
+    def __init__(self, r=0.02, beta=0.96, sigma=2.0, y=[0.5, 1.5], P=[[0.1, 0.9], [0.9, 0.1]], amin=0.0):
 
         # Parameters
         self.r = r
@@ -42,6 +42,8 @@ class IncomeFluctuationEnv(gym.Env):
         return self.state, {}
 
     def step(self, action):
+        action = action.item() if hasattr(action, "item") else float(action)
+
         # 1. Unpack state
         a, income_idx = self.state
         income_idx = int(income_idx)
@@ -51,7 +53,7 @@ class IncomeFluctuationEnv(gym.Env):
         resources = (1 + self.r) * a + income
 
         # 3. Process action (assumed to be a saving rate)
-        savings_rate = np.clip(action, 0.0, 1.0)
+        savings_rate = float(np.clip(action, 0.0, 1.0))
         a_plus = resources * savings_rate
         c = resources - a_plus
 
@@ -74,6 +76,5 @@ class IncomeFluctuationEnv(gym.Env):
         return self.state, reward, terminated, truncated, {}
 
         
-
 
 

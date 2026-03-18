@@ -35,7 +35,7 @@ def watch_agent(model_path=None):
     policy = PolicyNet(obs_dim, hidden_dim=64, n_actions=n_actions)
     
     if model_path and os.path.exists(model_path):
-        policy.load_state_dict(torch.load(model_path))
+        policy.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
         print(f"Loaded model from {model_path}")
     else:
         print("Using random weights (Untrained Agent)")

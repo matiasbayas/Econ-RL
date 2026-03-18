@@ -1,38 +1,71 @@
 # Econ-RL
 
-An exploration of Deep Reinforcement Learning (DRL) from an economist's perspective.
+Reinforcement learning experiments for economic models and standard control tasks.
 
-This repository serves as a learning journey, starting with basic methods and standard libraries applied to conventional problems (e.g., CartPole), and eventually moving towards applications with an economic flavor.
+This repository combines baseline RL exercises with a custom income fluctuation environment. The main economics example is a Bewley-style savings problem: an agent receives stochastic income, chooses a savings rate each period, and learns a policy that trades off current consumption against future assets.
 
-## Structure
+## Projects
 
-- `projects/`: Contains individual projects and experiments.
-    - `01_cartpole_intro/`: First project solving CartPole-v1.
+- `projects/cartpole/`: REINFORCE and DQN baselines for `CartPole-v1`, plus comparison and visualization scripts.
+- `projects/income_fluctuation/`: Custom income fluctuation environment, REINFORCE training, policy validation, and variance checks.
+- `projects/lunar_lander/`: Small LunarLander environment experiment.
 
-## Setup
+## Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url>
-    cd Econ-RL
-    ```
-
-2.  **Create a virtual environment:**
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
-
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+git clone <repository_url>
+cd Econ-RL
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
 ## Usage
 
-Navigate to a project directory and run the script. For example:
+Train CartPole with REINFORCE:
 
 ```bash
-cd projects/cartpole
-python train.py
+python projects/cartpole/train.py --episodes 1000
 ```
+
+Train CartPole with DQN:
+
+```bash
+python projects/cartpole/dqn_train.py --episodes 500
+```
+
+Compare the latest CartPole runs:
+
+```bash
+python projects/cartpole/compare_results.py
+python projects/cartpole/compare_reinforce_variants.py
+```
+
+Train the income fluctuation agent:
+
+```bash
+python projects/income_fluctuation/train.py --episodes 1000 --batch_size 10
+```
+
+Validate a trained income fluctuation policy:
+
+```bash
+python projects/income_fluctuation/validate_agent.py projects/income_fluctuation/results/run_<timestamp>
+```
+
+## Repository Structure
+
+```text
+projects/
+  cartpole/
+  income_fluctuation/
+  lunar_lander/
+requirements.txt
+README.md
+```
+
+## What This Repo Demonstrates
+
+- Policy-gradient and value-based RL implementations in PyTorch.
+- A custom RL environment for an economic savings problem with stochastic income.
+- Post-training validation that converts learned policies into consumption and asset policy functions.

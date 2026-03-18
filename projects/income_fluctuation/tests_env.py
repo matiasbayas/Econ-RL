@@ -1,6 +1,6 @@
-import gymnasium as gym
-from env import IncomeFluctuationEnv
 import numpy as np
+
+from env import IncomeFluctuationEnv
 
 def test_env():
     print("Initializing environment...")
