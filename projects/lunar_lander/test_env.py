@@ -1,7 +1,7 @@
 import gymnasium as gym
 
 def test_env():
-    env = gym.make("LunarLander-v2", render_mode="human")
+    env = gym.make("LunarLander-v3", render_mode="human")
     obs, _ = env.reset()
     print(f"Observation Space: {env.observation_space}")
     print(f"Action Space: {env.action_space}")

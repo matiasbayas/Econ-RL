@@ -89,7 +89,7 @@ def validate(run_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Validate Income Fluctuation Agent")
-    parser.add_argument("run_dir", type=str, help="Path to the run directory (e.g., results/run_...)")
+    parser.add_argument("run_dir", type=str, help="Path to the run directory (e.g., projects/income_fluctuation/results/run_...)")
     args = parser.parse_args()
     
     validate(args.run_dir)
