@@ -35,5 +35,13 @@ Run scripts from the repo root:
 
 ```bash
 python projects/cartpole/train.py --episodes 1000
+python projects/cartpole/dqn_train.py --episodes 500
 python projects/income_fluctuation/train.py --episodes 1000 --batch_size 10
+```
+
+After training, validate the learned policy and compare runs:
+
+```bash
+python projects/income_fluctuation/validate_agent.py projects/income_fluctuation/results/run_<timestamp>
+python projects/cartpole/compare_results.py
 ```
